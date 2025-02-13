@@ -12,10 +12,10 @@ from database import insert_document, get_all_documents,  get_all_documents, get
 
 app = FastAPI()
 
-# 加载零样本分类模型
+# Load zero-shot classification model
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
-# 定义类别
+# Dedine categories
 CATEGORIES = [
     "Technical Documentation",
     "Business Proposal",
@@ -25,14 +25,18 @@ CATEGORIES = [
     "Other"
 ]
 
-# Pydantic 模型
+CONFIDENCE_THRESHOLD = 0.3  # Threshold for low confidence warning
+LOW_CONFIDENCE_THRESHOLD = 0.2  # # Threshold for classifying as "Other"
+CHUNK_SIZE = 512  # Size of text chunks for processing
+
+# Pydantic model for document response
 class DocumentResponse(BaseModel):
     filename: str
     predicted_category: str
     confidence: float
     upload_time: datetime.datetime
 
-# 解析 PDF
+# Extract PDF
 def extract_text_from_pdf(file):
     pdf_reader = PdfReader(file)
     text = ""
@@ -40,7 +44,7 @@ def extract_text_from_pdf(file):
         text += page.extract_text()
     return text
 
-# 解析 DOC/DOCX
+# Extract DOC/DOCX
 def extract_text_from_doc(file):
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_file:
@@ -55,7 +59,12 @@ def extract_text_from_doc(file):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error parsing DOCX file: {str(e)}")
 
-# 上传文件接口
+def chunk_text(text, chunk_size=512):
+    """Split text into chunks, each with a maximum length of chunk_size"""
+    return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+
+
+# Endpoint to upload documents
 @app.post("/upload/", response_model=DocumentResponse)
 async def upload_document(file: UploadFile = File(...)):
     if not (file.filename.endswith(".txt") or file.filename.endswith(".pdf") or file.filename.endswith(".docx")):
@@ -74,16 +83,26 @@ async def upload_document(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
 
+    chunks = chunk_text(content)
+
+    # Classify each chunk
+    results = [classifier(chunk, CATEGORIES) for chunk in chunks]
+
+    # Select the classification with the highest confidence
+    best_result = max(results, key=lambda r: r["scores"][0])
+    predicted_category = best_result["labels"][0]
+    confidence = best_result["scores"][0]
+
+
     result = classifier(content, CATEGORIES)
     predicted_category = result["labels"][0]
     confidence = result["scores"][0]
 
-    # 创建目录如果不存在
-    file_location = f"files/{file.filename}"
-    os.makedirs(os.path.dirname(file_location), exist_ok=True)  # 确保 'files' 目录存在
-
-    with open(file_location, "wb") as buffer:
-        buffer.write(await file.read())  # 保存文件到本地
+    warning = None
+    if confidence < CONFIDENCE_THRESHOLD:
+        warning = f"Warning: The confidence score ({confidence:.2f}) is low, the prediction may not be accurate."
+    if confidence < LOW_CONFIDENCE_THRESHOLD:
+        redicted_category = "Other"
 
 
     insert_document(file.filename, predicted_category, confidence, datetime.datetime.now().isoformat())
@@ -92,38 +111,42 @@ async def upload_document(file: UploadFile = File(...)):
         "filename": file.filename,
         "predicted_category": predicted_category,
         "confidence": confidence,
-        "upload_time": datetime.datetime.now().isoformat()
+        "upload_time": datetime.datetime.now().isoformat(),
+        "warning": warning
     }
 
-# 获取文件列表接口
+# Endpoint to retrieve list of documents
 @app.get("/documents/", response_model=List[DocumentResponse])
 async def get_documents():
     documents = get_all_documents()
+    if not documents:
+        raise HTTPException(status_code=404, detail="No documents found")
+    
     return [DocumentResponse(**doc) for doc in documents]
 
 
-# 获取文档类别分布
+# Endpoint to get document category distribution
 @app.get("/statistics/document_distribution")
 async def document_distribution():
     data = get_document_distribution()
     return {"categories": data['categories'], "counts": data['counts']}
 
-# 获取上传趋势
+# Endpoint to get upload trends
 @app.get("/statistics/upload_trends")
 async def upload_trends():
     data = get_upload_trends()
     return {"upload_times": data}
 
-# 获取置信度分布
+# Endpoint to get confidence distribution
 @app.get("/statistics/confidence_distribution")
 async def confidence_distribution():
     data = get_confidence_distribution()
     return {"confidence_scores": data}
 
-# 允许 CORS
+#Allow CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 允许的前端地址
+    allow_origins=["http://localhost:3000"],  # frontend address
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -4,11 +4,12 @@ from collections import defaultdict
 
 DATABASE_PATH = "documents.db"
 
-# 初始化数据库
+# database initialization
 def init_db():
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     cursor = conn.cursor()
     
+    #Create the documents table if it doesn't exist
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +23,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# 插入新文件记录
+# Insert a new document record into the database
 def insert_document(filename, predicted_category, confidence, upload_time):
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -35,7 +36,7 @@ def insert_document(filename, predicted_category, confidence, upload_time):
     conn.commit()
     conn.close()
 
-# 获取所有文件记录
+# Retrieve all document records from the database
 def get_all_documents():
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -45,6 +46,7 @@ def get_all_documents():
     
     conn.close()
     
+    # Format the results into a list of dictionaries
     return [
         {
             "filename": row[0],
@@ -55,7 +57,7 @@ def get_all_documents():
         for row in rows
     ]
 
-# 获取文档类别分布
+# Retrieve the distribution of document categories
 def get_document_distribution():
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -70,7 +72,7 @@ def get_document_distribution():
     
     return {"categories": categories, "counts": counts}
 
-# 获取上传趋势
+# Retrieve upload trends (number of uploads per day)
 def get_upload_trends():
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -79,11 +81,11 @@ def get_upload_trends():
     rows = cursor.fetchall()
     
     conn.close()
-    
+
     upload_times = {row[0]: row[1] for row in rows}
     return upload_times
 
-# 获取置信度分布
+# Retrieve the distribution of confidence scores
 def get_confidence_distribution():
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -96,5 +98,5 @@ def get_confidence_distribution():
     confidence_scores = [row[0] for row in rows]
     return confidence_scores
 
-# 运行数据库初始化
+# Run database initialization
 init_db()
