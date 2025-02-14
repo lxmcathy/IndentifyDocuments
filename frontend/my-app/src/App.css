@@ -1,0 +1,232 @@
+/* 基本布局 */
+.App {
+  text-align: center;
+  padding: 40px 20px;
+  font-family: 'Roboto', Arial, sans-serif; /* 使用现代简洁的字体 */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: linear-gradient(135deg, #FFFFFF, #A9D6F1); 
+  position: relative; /* 允许伪元素放置 */
+  overflow: hidden; /* 防止溢出 */
+}
+
+/* 伪元素：边缘波点 */
+.App::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.1) 10%, transparent 10%) 0 0 / 25px 25px;
+  mask: linear-gradient(to right, black 10%, transparent 40%, transparent 60%, black 90%);
+  -webkit-mask: linear-gradient(to right, black 10%, transparent 40%, transparent 60%, black 90%);
+
+  pointer-events: none;
+}
+
+/* 标题 */
+.App-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: #333;
+  font-weight: 600;
+  max-width: 800px; /* 限制标题的最大宽度 */
+  width: 100%;
+  text-align: center;
+}
+
+/* 上传区域 */
+.upload-section {
+  margin-top: 5px;
+}
+
+.upload-container {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 轻微阴影效果 */
+  max-width: 450px;
+  width: 100%; /* 保证容器宽度不会超过屏幕 */
+  margin: 0 auto;
+}
+
+.upload-container p {
+  font-size: 1rem;
+  color: #777;
+  margin: 0;
+  text-align: center;
+}
+
+.upload-section input[type="file"] {
+  margin-right: 10px;
+  width: 100%; /* 保证文件选择按钮和上传按钮一致 */
+  max-width: 300px; /* 限制最大宽度 */
+  padding: 10px; /* 设置内边距，保持一致 */
+  font-size: 1rem; /* 字体大小一致 */
+}
+
+.upload-section button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%; /* 按钮宽度占满容器 */
+  max-width: 300px; /* 限制按钮最大宽度 */
+  margin: 10px 0;  /* 增加按钮间距 */
+}
+
+.upload-section button:hover {
+  background-color: #0056b3;
+}
+
+/* 结果区域 */
+.result-section {
+  margin-top: 40px;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%; /* 保证容器宽度不会超过屏幕 */
+  margin: 20px auto;
+}
+
+.result-section h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.result-section p {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* 文档列表 */
+.document-list {
+  margin-top: 40px;
+  padding: 30px;
+  background-color: transparent;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 100%;
+  margin: 20px auto;
+}
+
+.document-list h2 {
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.document-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.document-list li {
+  padding: 15px;
+  background-color: #fff;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.document-list li small {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* 拖拽区域 */
+.dropzone {
+  width: 100%;
+  height: 150px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #555;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.dropzone:hover {
+  border-color: #007bff;
+  transform: scale(1.05);
+}
+
+.dropzone p {
+  margin: 0;
+}
+
+/* 统计面板 */
+.statistics-panel {
+  margin: 40px 0;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+  margin: 20px auto;
+}
+
+.statistics-section {
+  margin-bottom: 20px;
+}
+
+.statistics-section h3 {
+  font-size: 1.4rem;
+  color: #333;
+  margin-top: 0;
+}
+
+.statistics-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.statistics-section li {
+  padding: 12px;
+  background-color: #fff;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+  color: #333;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .App {
+    padding: 20px;
+  }
+
+  .upload-container {
+    max-width: 100%;
+  }
+
+  .dropzone {
+    width: 100%;
+  }
+
+  .upload-section button {
+    width: 100%;  /* 在小屏幕上按钮占满全宽 */
+  }
+
+  .document-list {
+    padding: 20px;
+  }
+}
